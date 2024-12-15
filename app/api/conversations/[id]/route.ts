@@ -1,15 +1,8 @@
+// app/api/conversations/[id]/route.ts
 import { type NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { Conversation, ConversationData } from '@/app/types';
-
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION!,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+import { getConversationsData, saveConversationsData } from '@/app/utils/s3';
+import { Conversation } from '@/app/types';
 
 export async function GET(
   request: NextRequest,
@@ -17,18 +10,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const username = process.env.USERNAME!;
-    const key = `users/${username}/history.json`;
-
-    const command = new GetObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key,
-    });
-
-    const response = await s3Client.send(command);
-    const str = await response.Body?.transformToString();
-    const data: ConversationData = str ? JSON.parse(str) : { conversations: [] };
-
+    const data = await getConversationsData();
     const conversation = data.conversations.find((c: Conversation) => c.id === id);
 
     if (!conversation) {
@@ -54,29 +36,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const username = process.env.USERNAME!;
-    const key = `users/${username}/history.json`;
-
-    const getCommand = new GetObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key,
-    });
-
-    const response = await s3Client.send(getCommand);
-    const str = await response.Body?.transformToString();
-    const data: ConversationData = str ? JSON.parse(str) : { conversations: [] };
+    const data = await getConversationsData();
 
     data.conversations = data.conversations.filter(
       (c: Conversation) => c.id !== id
     );
 
-    const putCommand = new PutObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key,
-      Body: JSON.stringify(data),
-    });
-
-    await s3Client.send(putCommand);
+    await saveConversationsData(data);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting conversation:', error);
