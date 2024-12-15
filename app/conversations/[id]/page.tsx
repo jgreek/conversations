@@ -2,6 +2,7 @@
 import {useEffect, useState, useRef} from 'react';
 import {Conversation} from '@/app/types';
 import {useParams, useRouter} from 'next/navigation';
+import {useSummarization} from "@/app/hooks/useSummarization";
 
 export default function ConversationPage() {
     const params = useParams();
@@ -11,7 +12,8 @@ export default function ConversationPage() {
     const [error, setError] = useState<string | null>(null);
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-
+    const {summarize, loading: summarizing} = useSummarization();
+    const [summary, setSummary] = useState<string | null>(null);
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
     };
@@ -63,7 +65,25 @@ export default function ConversationPage() {
             setError(err instanceof Error ? err.message : 'Failed to send message');
         }
     };
+    const handleSummarize = async () => {
+        if (!conversation || summarizing) return;
 
+        // Convert conversation to a format suitable for summarization
+        const conversationText = conversation.messages
+            .map(msg => `${msg.sender}: ${msg.content}`)
+            .join('\n');
+
+        const result = await summarize(conversationText, {
+            maxLength: 280,
+            format: 'paragraph',
+            focus: ['key points', 'main topics'],
+            temperature: 0.3
+        });
+
+        if (result) {
+            setSummary(result);
+        }
+    };
     if (error) {
         return (
             <div className="p-6">
@@ -84,10 +104,26 @@ export default function ConversationPage() {
     return (
         <div className="flex flex-col h-screen bg-gray-100">
             {/* Header */}
-            <div className="bg-white border-b p-4">
-                <h1 className="text-xl font-semibold text-blue-800">{conversation.tagline}</h1>
-            </div>
 
+           <div className="bg-white border-b p-4">
+                <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold text-blue-800">{conversation.tagline}</h1>
+                    <button
+                        onClick={handleSummarize}
+                        disabled={summarizing}
+                        className="px-4 py-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200
+                                 transition-colors disabled:bg-gray-100 disabled:text-gray-400"
+                    >
+                        {summarizing ? 'Summarizing...' : 'Summarize'}
+                    </button>
+                </div>
+                {summary && (
+                    <div className="mt-2 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+                        <div className="font-medium mb-1">Summary:</div>
+                        {summary}
+                    </div>
+                )}
+            </div>
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {conversation.messages.map((message, index) => (
