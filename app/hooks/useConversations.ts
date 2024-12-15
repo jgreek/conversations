@@ -13,9 +13,7 @@ export function useConversations() {
   const fetchConversations = async () => {
     try {
       const response = await fetch('/api/conversations');
-      if (!response.ok) {
-        throw new Error('Failed to fetch conversations');
-      }
+      if (!response.ok) throw new Error('Failed to fetch conversations');
       const data = await response.json();
       setConversations(data.conversations);
     } catch (err) {
@@ -25,10 +23,38 @@ export function useConversations() {
     }
   };
 
+  const addConversation = async (tagline: string) => {
+    try {
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tagline }),
+      });
+      if (!response.ok) throw new Error('Failed to create conversation');
+      await fetchConversations();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+
+  const deleteConversation = async (id: string) => {
+    try {
+      const response = await fetch(`/api/conversations/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete conversation');
+      await fetchConversations();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+
   return {
     conversations,
     loading,
     error,
-    refreshConversations: fetchConversations
+    addConversation,
+    deleteConversation,
+    refreshConversations: fetchConversations,
   };
 }
