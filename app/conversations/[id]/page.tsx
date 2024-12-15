@@ -19,7 +19,7 @@ export default function ConversationPage() {
     if (id) fetchConversation();
   }, [id]); // Single dependency
 
-  if (!conversation) return <div>Loading...</div>;
+  if (!conversation) return <div>Loading conversations...</div>;
 
   return (
     <div className="p-6">
