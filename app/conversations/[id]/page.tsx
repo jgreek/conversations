@@ -103,16 +103,15 @@ export default function ConversationPage() {
 
     return (
         <div className="flex flex-col h-screen bg-gray-100">
-            {/* Header */}
-
-           <div className="bg-white border-b p-4">
+            {/* Header with mobile spacing */}
+            <div className="bg-white border-b p-4 mt-14 lg:mt-0"> {/* Added mt-14 for mobile */}
                 <div className="flex justify-between items-center">
                     <h1 className="text-xl font-semibold text-blue-800">{conversation.tagline}</h1>
                     <button
                         onClick={handleSummarize}
                         disabled={summarizing}
                         className="px-4 py-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200
-                                 transition-colors disabled:bg-gray-100 disabled:text-gray-400"
+                             transition-colors disabled:bg-gray-100 disabled:text-gray-400"
                     >
                         {summarizing ? 'Summarizing...' : 'Summarize'}
                     </button>
