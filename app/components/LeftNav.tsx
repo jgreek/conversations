@@ -22,7 +22,7 @@ export default function LeftNav({ onClose }: LeftNavProps) {
         setNewConversationTitle('');
     };
 
-    const baseClasses = `
+     const baseClasses = `
         w-72 h-full bg-gray-900 text-gray-100 flex flex-col
         fixed left-0 top-0 lg:relative
         transform transition-transform duration-200 ease-in-out
@@ -31,12 +31,40 @@ export default function LeftNav({ onClose }: LeftNavProps) {
         z-40
     `;
 
+    // Common header component with close button for mobile
+    const Header = () => (
+        <div className="p-4 border-b border-gray-800 flex-shrink-0">
+            <div className="flex items-center justify-between">
+                <Logo />
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
+                        aria-label="Close sidebar"
+                    >
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+
     if (loading) {
         return (
             <div className={baseClasses}>
-                <div className="p-4 border-b border-gray-800">
-                    <Logo />
-                </div>
+                <Header />
                 <div className="p-4">
                     <div className="animate-pulse flex space-x-4">
                         <div className="flex-1 space-y-4 py-1">
@@ -55,9 +83,7 @@ export default function LeftNav({ onClose }: LeftNavProps) {
     if (error) {
         return (
             <div className={baseClasses}>
-                <div className="p-4 border-b border-gray-800">
-                    <Logo />
-                </div>
+                <Header />
                 <div className="p-4">
                     <div className="text-red-400 bg-red-400/10 p-3 rounded-lg">
                         Error: {error}
@@ -69,10 +95,7 @@ export default function LeftNav({ onClose }: LeftNavProps) {
 
     return (
         <nav className={`${baseClasses} overflow-hidden`}>
-            <div className="p-4 border-b border-gray-800 flex-shrink-0">
-                <Logo />
-            </div>
-
+            <Header />
             <div className="flex-1 overflow-y-auto">
                 <div className="p-4">
                     <form onSubmit={handleCreateConversation} className="mb-6">
@@ -109,6 +132,7 @@ export default function LeftNav({ onClose }: LeftNavProps) {
                                 >
                                     <Link
                                         href={`/conversations/${conversation.id}`}
+                                        onClick={() => onClose?.()}
                                         className="block p-3"
                                     >
                                         <div className="font-medium text-gray-100 truncate">
