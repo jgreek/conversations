@@ -1,7 +1,7 @@
 'use client';
 import './globals.css';
 import LeftNav from './components/LeftNav';
-import Providers from "@/app/providers";
+import { ConversationsProvider } from './contexts/ConversationsContext';
 import {useState} from "react";
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning className="h-full">
             <body suppressHydrationWarning className="h-full bg-gray-50 dark:bg-gray-900">
-                <Providers>
+                <ConversationsProvider>
                     <div className="flex h-screen overflow-hidden">
                         {/* Mobile overlay */}
                                               {isSidebarOpen && (
@@ -49,7 +49,7 @@ export default function RootLayout({
                             {children}
                         </main>
                     </div>
-                </Providers>
+                </ConversationsProvider>
             </body>
         </html>
     );

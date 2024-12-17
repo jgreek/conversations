@@ -1,28 +1,36 @@
 'use client';
 
-import { useState } from 'react';
-import { useConversations } from '../hooks/useConversations';
+import {useState} from 'react';
+import {useConversations} from '../hooks/useConversations';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import {usePathname} from 'next/navigation';
 import FormattedDate from "@/app/api/conversations/FormattedDate";
-import { Logo } from "@/app/components/Logo";
+import {Logo} from "@/app/components/Logo";
+import {useRouter} from 'next/navigation';
+
 interface LeftNavProps {
     onClose?: () => void;
 }
 
-export default function LeftNav({ onClose }: LeftNavProps) {
-    const { conversations, loading, error, addConversation, deleteConversation } = useConversations();
+export default function LeftNav({onClose}: LeftNavProps) {
+    const {conversations, loading, error, addConversation, deleteConversation} = useConversations();
     const [newConversationTitle, setNewConversationTitle] = useState('');
     const pathname = usePathname();
-
+    const router = useRouter();
     const handleCreateConversation = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newConversationTitle.trim()) return;
-        await addConversation(newConversationTitle);
-        setNewConversationTitle('');
+
+        try {
+            const newConversation = await addConversation(newConversationTitle);
+            setNewConversationTitle('');
+            await router.push(`/conversations/${newConversation.id}`);
+            onClose?.();
+        } catch (error) {
+            console.error('Failed to create conversation:', error);
+        }
     };
 
-     const baseClasses = `
+    const baseClasses = `
         w-72 h-full bg-gray-900 text-gray-100 flex flex-col
         fixed left-0 top-0 lg:relative
         transform transition-transform duration-200 ease-in-out
@@ -35,7 +43,7 @@ export default function LeftNav({ onClose }: LeftNavProps) {
     const Header = () => (
         <div className="p-4 border-b border-gray-800 flex-shrink-0">
             <div className="flex items-center justify-between">
-                <Logo />
+                <Logo/>
                 {onClose && (
                     <button
                         onClick={onClose}
@@ -64,7 +72,7 @@ export default function LeftNav({ onClose }: LeftNavProps) {
     if (loading) {
         return (
             <div className={baseClasses}>
-                <Header />
+                <Header/>
                 <div className="p-4">
                     <div className="animate-pulse flex space-x-4">
                         <div className="flex-1 space-y-4 py-1">
@@ -83,7 +91,7 @@ export default function LeftNav({ onClose }: LeftNavProps) {
     if (error) {
         return (
             <div className={baseClasses}>
-                <Header />
+                <Header/>
                 <div className="p-4">
                     <div className="text-red-400 bg-red-400/10 p-3 rounded-lg">
                         Error: {error}
@@ -95,28 +103,19 @@ export default function LeftNav({ onClose }: LeftNavProps) {
 
     return (
         <nav className={`${baseClasses} overflow-hidden`}>
-            <Header />
+            <Header/>
             <div className="flex-1 overflow-y-auto">
                 <div className="p-4">
                     <form onSubmit={handleCreateConversation} className="mb-6">
-                        <input
-                            type="text"
-                            value={newConversationTitle}
-                            onChange={(e) => setNewConversationTitle(e.target.value)}
-                            placeholder="New conversation title"
-                            className="w-full p-2.5 rounded-lg bg-gray-800 text-white placeholder-gray-400
-                                     border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500
-                                     transition-colors"
-                        />
+
                         <button
                             type="submit"
-                            disabled={!newConversationTitle.trim()}
                             className="w-full mt-2 p-2.5 bg-blue-600 text-white rounded-lg font-medium
                                      hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                                      focus:ring-offset-gray-900 transition-colors disabled:opacity-50
                                      disabled:cursor-not-allowed"
                         >
-                            Create New Conversation
+                            +
                         </button>
                     </form>
 
@@ -139,7 +138,7 @@ export default function LeftNav({ onClose }: LeftNavProps) {
                                             {conversation.tagline}
                                         </div>
                                         <div className="text-sm text-gray-400 mt-1">
-                                            <FormattedDate timestamp={conversation.timestamp} />
+                                            <FormattedDate timestamp={conversation.timestamp}/>
                                         </div>
                                         <div className="text-xs text-gray-500 mt-1">
                                             {conversation.model}

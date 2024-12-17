@@ -52,3 +52,35 @@ export async function DELETE(
     );
   }
 }
+
+// app/api/conversations/[id]/route.ts
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await params;
+        const { tagline } = await request.json();
+
+        const data = await getConversationsData();
+        const conversation = data.conversations.find(c => c.id === id);
+
+        if (!conversation) {
+            return NextResponse.json(
+                { error: 'Conversation not found' },
+                { status: 404 }
+            );
+        }
+
+        conversation.tagline = tagline;
+        await saveConversationsData(data);
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('Error updating conversation:', error);
+        return NextResponse.json(
+            { error: 'Failed to update conversation' },
+            { status: 500 }
+        );
+    }
+}

@@ -3,9 +3,12 @@ import {useEffect, useState, useRef} from 'react';
 import {Conversation} from '@/app/types';
 import {useParams, useRouter} from 'next/navigation';
 import {useSummarization} from "@/app/hooks/useSummarization";
+import {useConversationTitle} from "@/app/hooks/useConversationTitle";
+import {useConversations} from "@/app/hooks/useConversations";
 
 export default function ConversationPage() {
     const params = useParams();
+    const {refreshTitle} = useConversations();
     const router = useRouter();
     const id = params?.id as string;
     const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -45,6 +48,7 @@ export default function ConversationPage() {
     useEffect(() => {
         if (id) fetchConversation();
     }, [id, router]);
+    const {updateTitle, loading: titleLoading} = useConversationTitle();
 
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,6 +62,17 @@ export default function ConversationPage() {
             });
 
             if (!response.ok) throw new Error('Failed to send message');
+
+            const updatedConversation = await response.json();
+
+            // Generate title if this is the first message and current title is still default
+            if (updatedConversation.messages.length === 1) {
+                const result = await updateTitle(id, updatedConversation.messages);
+                if (result.success) {
+                    await refreshTitle(id, result.title); // Pass the new title for optimistic update
+                    await fetchConversation();
+                }
+            }
 
             setNewMessage('');
             await fetchConversation();

@@ -1,9 +1,10 @@
-'use client';
+// app/providers.tsx
+import { ConversationsProvider } from './contexts/ConversationsContext';
 
-export default function Providers({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <>{children}</>;
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ConversationsProvider>
+      {children}
+    </ConversationsProvider>
+  );
 }
