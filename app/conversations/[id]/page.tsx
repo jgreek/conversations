@@ -48,7 +48,7 @@ export default function ConversationPage() {
     useEffect(() => {
         if (id) fetchConversation();
     }, [id, router]);
-    const {updateTitle, loading: titleLoading} = useConversationTitle();
+    const {updateTitle} = useConversationTitle();
 
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
